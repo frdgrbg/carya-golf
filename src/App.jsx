@@ -5,8 +5,8 @@ const SUPER_ADMIN_EMAIL = "superadmin@caryagolf.com";
 const SUPER_ADMIN_PASSWORD = "Carya2024!";
 
 const DEPARTMENTS = [
-  "Resepsiyon","Restoran","Mutfak","Bahçe & Saha","Güvenlik",
-  "Housekeeping","Pro Shop","Spa & Wellness","Teknik Servis","İnsan Kaynakları",
+  "Rezervasyon","Resepsiyon","Caddy Operasyon","Proshop-Depo","F&B",
+  "Mutfak","H&K","Teknik","İnsan Kaynakları","Saha Bakım","Buggy Tamir",
 ];
 
 const SHIFT_LETTERS = ["A","B","C","D","E","F","G","H","İzin","OFF"];
@@ -879,7 +879,7 @@ function NoShowTab({currentUser,noShows,setNoShows,addNotification}) {
       reportedAt: new Date().toLocaleString("tr-TR"),
     };
     setNoShows(prev=>[entry,...prev]);
-    addNotification("Resepsiyon",`🚫 No-Show: ${playerName.trim()} (${date}) - ${note.trim()||"Not yok"}`,currentUser.name);
+    addNotification("Rezervasyon",`🚫 No-Show: ${playerName.trim()} (${date}) - ${note.trim()||"Not yok"}`,currentUser.name);
     setPlayerName(""); setNote(""); setError("");
     setSuccess(`${playerName.trim()} rezervasyon departmanına bildirildi.`);
     setTimeout(()=>setSuccess(""),3000);
