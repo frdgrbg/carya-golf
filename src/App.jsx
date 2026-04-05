@@ -65,6 +65,7 @@ export default function App() {
   const [taskNotes,setTaskNotes] = useState(()=>load("cg_tasknotes",{}));
   const [notifications,setNotifications] = useState(()=>load("cg_notifs",{}));
   const [members,setMembers] = useState(()=>load("cg_members",[]));
+  const [noShows,setNoShows] = useState(()=>load("cg_noshows",[]));
 
   useEffect(()=>{ save("cg_users",users); },[users]);
   useEffect(()=>{ save("cg_current",currentUser); },[currentUser]);
@@ -75,6 +76,7 @@ export default function App() {
   useEffect(()=>{ save("cg_tasknotes",taskNotes); },[taskNotes]);
   useEffect(()=>{ save("cg_notifs",notifications); },[notifications]);
   useEffect(()=>{ save("cg_members",members); },[members]);
+  useEffect(()=>{ save("cg_noshows",noShows); },[noShows]);
 
   const isAdmin = currentUser?.role==="admin"||currentUser?.role==="superadmin";
   const isSuperAdmin = currentUser?.role==="superadmin";
@@ -133,6 +135,7 @@ export default function App() {
       taskLogs={taskLogs} setTaskLogs={setTaskLogs}
       taskNotes={taskNotes} setTaskNotes={setTaskNotes}
       members={members} setMembers={setMembers}
+      noShows={noShows} setNoShows={setNoShows}
       memberAlertCount={memberAlertCount}
       myNotifications={myNotifications} unreadCount={unreadCount}
       markNotifRead={markNotifRead} addNotification={addNotification}
@@ -280,6 +283,7 @@ function MainApp(props) {
           {key:"shift",label:"📅 Shift"},
           {key:"menu",label:"🍽️ Menü"},
           {key:"tasks",label:"✅ Görevler"},
+          {key:"noshow",label:"🚫 No-Show"},
           ...(isAdmin?[{key:"members",label:"👥 Üyeler"},{key:"admin",label:"⚙️ Admin"}]:[]),
         ].map(t=>(
           <button key={t.key} style={{...S.tab,...(activeTab===t.key?S.tabActive:{})}}
@@ -296,7 +300,8 @@ function MainApp(props) {
         {activeTab==="shift"&&<ShiftTab {...props}/>}
         {activeTab==="menu"&&<MenuTab {...props}/>}
         {activeTab==="tasks"&&<TasksTab {...props}/>}
-        {activeTab==="members"&&isAdmin&&<MembersTab {...props}/>}
+        {activeTab==="noshow"&&<NoShowTab {...props}/>}
+        {activeTab==="members"&&isAdmin&&<MembersTab {...props}/> }
         {activeTab==="admin"&&isAdmin&&<AdminTab {...props}/>}
       </div>
     </div>
@@ -847,6 +852,104 @@ function AdminTab({users,setUsers,isSuperAdmin}) {
             </div>
           </div>
         ))
+      )}
+    </div>
+  );
+}
+
+
+// ===================== NO-SHOW TAB =====================
+function NoShowTab({currentUser,noShows,setNoShows,addNotification}) {
+  const todayStr = new Date().toISOString().slice(0,10);
+  const [date,setDate] = useState(todayStr);
+  const [playerName,setPlayerName] = useState("");
+  const [note,setNote] = useState("");
+  const [error,setError] = useState("");
+  const [success,setSuccess] = useState("");
+  const [filterDate,setFilterDate] = useState("");
+
+  const handleAdd = () => {
+    if (!playerName.trim()) return setError("Oyuncu adı zorunludur.");
+    const entry = {
+      id: Date.now().toString(),
+      date,
+      playerName: playerName.trim(),
+      note: note.trim(),
+      reportedBy: currentUser.name,
+      reportedAt: new Date().toLocaleString("tr-TR"),
+    };
+    setNoShows(prev=>[entry,...prev]);
+    addNotification("Resepsiyon",`🚫 No-Show: ${playerName.trim()} (${date}) - ${note.trim()||"Not yok"}`,currentUser.name);
+    setPlayerName(""); setNote(""); setError("");
+    setSuccess(`${playerName.trim()} rezervasyon departmanına bildirildi.`);
+    setTimeout(()=>setSuccess(""),3000);
+  };
+
+  const handleDelete = (id) => {
+    setNoShows(prev=>prev.filter(n=>n.id!==id));
+  };
+
+  const filtered = filterDate
+    ? noShows.filter(n=>n.date===filterDate)
+    : noShows;
+
+  return (
+    <div>
+      <div style={S.sectionHeader}>
+        <h2 style={S.sectionTitle}>🚫 No-Show Bildirimi</h2>
+      </div>
+
+      {/* FORM */}
+      <div style={{background:"#161616",border:"1px solid #c9a84c33",borderRadius:14,padding:20,marginBottom:24}}>
+        <div style={{color:"#c9a84c",fontWeight:700,fontSize:14,marginBottom:16}}>Yeni No-Show Kaydı</div>
+        {error&&<div style={S.errorBox}>{error}</div>}
+        {success&&<div style={S.successBox}>{success}</div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12,marginBottom:12}}>
+          <div style={S.formGroup}>
+            <label style={S.label}>Tarih</label>
+            <input style={S.input} type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+          </div>
+          <div style={S.formGroup}>
+            <label style={S.label}>Oyuncu Adı *</label>
+            <input style={S.input} value={playerName} onChange={e=>setPlayerName(e.target.value)} placeholder="Ad Soyad" onKeyDown={e=>e.key==="Enter"&&handleAdd()}/>
+          </div>
+        </div>
+        <div style={S.formGroup}>
+          <label style={S.label}>Not</label>
+          <input style={S.input} value={note} onChange={e=>setNote(e.target.value)} placeholder="Ek bilgi (opsiyonel)..." onKeyDown={e=>e.key==="Enter"&&handleAdd()}/>
+        </div>
+        <button style={{...S.btnPrimary,width:"auto",padding:"10px 24px"}} onClick={handleAdd}>
+          📨 Rezervasyon Departmanına Bildir
+        </button>
+      </div>
+
+      {/* LIST */}
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+        <span style={{color:"#888",fontSize:13}}>Tarih filtrele:</span>
+        <input style={{...S.dateInput}} type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}/>
+        {filterDate&&<button style={S.btnSmall} onClick={()=>setFilterDate("")}>✕ Temizle</button>}
+        <span style={{color:"#666",fontSize:12,marginLeft:"auto"}}>{filtered.length} kayıt</span>
+      </div>
+
+      {filtered.length===0?(
+        <div style={S.menuEmpty}>No-show kaydı bulunamadı.</div>
+      ):(
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {filtered.map(n=>(
+            <div key={n.id} style={{background:"#161616",border:"1px solid #2a2a2a",borderRadius:12,padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12,flexWrap:"wrap"}}>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4,flexWrap:"wrap"}}>
+                  <span style={{fontWeight:700,color:"#fff",fontSize:15}}>🚫 {n.playerName}</span>
+                  <span style={{background:"#2a1a1a",color:"#ff8080",borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>No-Show</span>
+                  <span style={{color:"#c9a84c",fontSize:12}}>📅 {n.date}</span>
+                </div>
+                {n.note&&<div style={{color:"#aaa",fontSize:13,marginBottom:4}}>📝 {n.note}</div>}
+                <div style={{color:"#555",fontSize:11}}>Bildiren: {n.reportedBy} • {n.reportedAt}</div>
+              </div>
+              <button style={S.btnDanger} onClick={()=>handleDelete(n.id)}>🗑</button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
