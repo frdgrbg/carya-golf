@@ -495,9 +495,9 @@ function TasksTab({currentUser,taskDefs,setTaskDefs,taskLogs,setTaskLogs,taskNot
         <input type="date" value={selectedDate} onChange={e=>setSelectedDate(e.target.value)} style={S.dateInput}/>
       </div>
       {isAdmin&&(
-        <div style={{marginBottom:16,display:"flex",gap:8}}>
-          <input style={{...S.input,flex:1}} value={newTaskText} onChange={e=>setNewTaskText(e.target.value)} placeholder="Yeni görev ekle..." onKeyDown={e=>e.key==="Enter"&&addTask(selectedDept)}/>
-          <button style={S.btnPrimary} onClick={()=>addTask(selectedDept)}>+ Ekle</button>
+        <div style={{marginBottom:16,display:"flex",gap:8,alignItems:"center"}}>
+          <input style={{...S.input,flex:1,width:"auto",minWidth:0}} value={newTaskText} onChange={e=>setNewTaskText(e.target.value)} placeholder="Yeni görev ekle..." onKeyDown={e=>e.key==="Enter"&&addTask(selectedDept)}/>
+          <button style={{...S.btnPrimary,width:"auto",padding:"10px 18px",flexShrink:0}} onClick={()=>addTask(selectedDept)}>+ Ekle</button>
         </div>
       )}
       <div style={S.taskList}>
@@ -530,9 +530,9 @@ function TasksTab({currentUser,taskDefs,setTaskDefs,taskLogs,setTaskLogs,taskNot
                 </div>
               )}
               {showNoteFor===task.id&&(
-                <div style={{display:"flex",gap:8,marginTop:10}}>
-                  <input style={{...S.input,flex:1}} value={noteInput[task.id]||""} onChange={e=>setNoteInput(prev=>({...prev,[task.id]:e.target.value}))} placeholder="Not girin..." onKeyDown={e=>e.key==="Enter"&&addNote(selectedDept,task.id)}/>
-                  <button style={S.btnPrimary} onClick={()=>addNote(selectedDept,task.id)}>Gönder</button>
+                <div style={{display:"flex",gap:8,marginTop:10,alignItems:"center"}}>
+                  <input style={{...S.input,flex:1,width:"auto",minWidth:0}} value={noteInput[task.id]||""} onChange={e=>setNoteInput(prev=>({...prev,[task.id]:e.target.value}))} placeholder="Not girin..." onKeyDown={e=>e.key==="Enter"&&addNote(selectedDept,task.id)}/>
+                  <button style={{...S.btnPrimary,width:"auto",padding:"10px 18px",flexShrink:0}} onClick={()=>addNote(selectedDept,task.id)}>Gönder</button>
                 </div>
               )}
             </div>
